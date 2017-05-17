@@ -137,35 +137,27 @@ bool MoveitStateAdapter::initialize(robot_model::RobotModelConstPtr robot_model,
 bool MoveitStateAdapter::getIK(const Eigen::Affine3d& pose, const std::vector<double>& seed_state,
                                std::vector<double>& joint_pose) const
 {
-  robot_state_->setJointGroupPositions(group_name_, seed_state);
-  return getIK(pose, joint_pose);
+  moveit::core::RobotState local_state {*robot_state_};
+  local_state.setJointGroupPositions(joint_group_, seed_state);
+  return getIK(local_state, pose, joint_pose);
 }
 
-bool MoveitStateAdapter::getIK(const Eigen::Affine3d& pose, std::vector<double>& joint_pose) const
+bool MoveitStateAdapter::getIK(moveit::core::RobotState &seed, const Eigen::Affine3d& pose,
+                               std::vector<double>& joint_pose) const
 {
-  bool rtn = false;
-
   // transform to group base
   Eigen::Affine3d tool_pose = world_to_root_.frame * pose;
 
-  if (robot_state_->setFromIK(joint_group_, tool_pose, tool_frame_))
+  if (seed.setFromIK(joint_group_, tool_pose, tool_frame_))
   {
-    robot_state_->copyJointGroupPositions(group_name_, joint_pose);
-    if (!isValid(joint_pose))
+    seed.copyJointGroupPositions(joint_group_, joint_pose);
+    if (isValid(joint_pose))
     {
-      ROS_DEBUG_STREAM("Robot joint pose is invalid");
+      return true;
     }
-    else
-    {
-      rtn = true;
-    }
-  }
-  else
-  {
-    rtn = false;
   }
 
-  return rtn;
+  return false;
 }
 
 bool MoveitStateAdapter::getAllIK(const Eigen::Affine3d& pose, std::vector<std::vector<double> >& joint_poses) const
@@ -179,9 +171,10 @@ bool MoveitStateAdapter::getAllIK(const Eigen::Affine3d& pose, std::vector<std::
   joint_poses.clear();
   for (size_t sample_iter = 0; sample_iter < seed_states_.size(); ++sample_iter)
   {
-    robot_state_->setJointGroupPositions(group_name_, seed_states_[sample_iter]);
+    moveit::core::RobotState local_state {*robot_state_};
+    local_state.setJointGroupPositions(group_name_, seed_states_[sample_iter]);
     std::vector<double> joint_pose;
-    if (getIK(pose, joint_pose))
+    if (getIK(local_state, pose, joint_pose))
     {
       if (joint_poses.empty())
       {
@@ -239,8 +232,9 @@ bool MoveitStateAdapter::isInCollision(const std::vector<double>& joint_pose) co
   bool in_collision = false;
   if (check_collisions_)
   {
-    robot_state_->setJointGroupPositions(group_name_, joint_pose);
-    in_collision = planning_scene_->isStateColliding(*robot_state_, group_name_);
+    moveit::core::RobotState local_state (*robot_state_);
+    local_state.setJointGroupPositions(joint_group_, joint_pose);
+    in_collision = planning_scene_->isStateColliding(local_state, group_name_);
   }
   return in_collision;
 }
@@ -295,7 +289,8 @@ bool MoveitStateAdapter::isValid(const Eigen::Affine3d& pose) const
 {
   // TODO: Could check robot extents first as a quick check
   std::vector<double> dummy;
-  return getIK(pose, dummy);
+  moveit::core::RobotState local_state {*robot_state_};
+  return getIK(local_state, pose, dummy);
 }
 
 int MoveitStateAdapter::getDOF() const

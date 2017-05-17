@@ -103,7 +103,7 @@ protected:
    * @param joint_pose Solution (if function successful).
    * @return
    */
-  bool getIK(const Eigen::Affine3d &pose, std::vector<double> &joint_pose) const;
+  bool getIK(moveit::core::RobotState& seed, const Eigen::Affine3d &pose, std::vector<double> &joint_pose) const;
 
   /**
    * TODO: Checks for collisions at this joint pose. The setCollisionCheck(true) must have been
@@ -118,7 +118,7 @@ protected:
    */
   std::vector<double> velocity_limits_;
 
-  mutable moveit::core::RobotStatePtr robot_state_;
+  moveit::core::RobotStatePtr robot_state_;
 
   planning_scene::PlanningScenePtr planning_scene_;
 
