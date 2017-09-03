@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.11)
 project(descartes_planner)
 
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++11 -march=native)
 
 find_package(catkin REQUIRED COMPONENTS
   descartes_core
@@ -14,6 +14,14 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Boost REQUIRED)
 find_package(Eigen3 REQUIRED)
+
+# For parallelization
+find_package(OpenMP REQUIRED)
+if(OPENMP_FOUND)
+  message(STATUS "OPENMP FOUND")
+  set(OpenMP_FLAGS ${OpenMP_CXX_FLAGS})
+  set(OpenMP_LIBS gomp)
+endif()
 
 # Eigen 3.2 (Wily) only provides EIGEN3_INCLUDE_DIR, not EIGEN3_INCLUDE_DIRS
 if(NOT EIGEN3_INCLUDE_DIRS)
@@ -58,9 +66,10 @@ add_library(descartes_planner
             src/ladder_graph_dag_search_lazy_collision.cpp
             src/graph_builder.cpp
 )
-
+target_compile_options(descartes_planner PRIVATE ${OpenMP_FLAGS})
 target_link_libraries(descartes_planner
                       ${catkin_LIBRARIES}
+                      ${OpenMP_LIBS}
 )
 
 

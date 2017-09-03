@@ -65,6 +65,10 @@ double DAGSearchLazyCollision::run(const std::vector<planning_scene::PlanningSce
           bool is_valid = !checker.isStateColliding(state, "manipulator", false);
           all_valid = all_valid && is_valid;
           valid(rung, idx) = is_valid ? Checked::FREE : Checked::COLLIDING;
+          if (!is_valid)
+          {
+            ROS_WARN("Collision on index %lu", rung);
+          }
         }
         else if (valid(rung, idx) == Checked::COLLIDING)
         {
@@ -80,7 +84,7 @@ double DAGSearchLazyCollision::run(const std::vector<planning_scene::PlanningSce
     }
   }
 
-  return 0.0;
+  return *std::min_element(solution_.back().distance.begin(), solution_.back().distance.end());
 }
 
 bool DAGSearchLazyCollision::runOne()

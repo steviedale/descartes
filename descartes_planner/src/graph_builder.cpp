@@ -117,8 +117,8 @@ descartes_planner::LadderGraph sampleSingleConfig(const descartes_core::RobotMod
   } // end edge loop
 
 
-  if (has_edges_t) ROS_ERROR("Lots of edges");
-  else ROS_ERROR("No edges...");
+//  if (has_edges_t) ROS_ERROR("Lots of edges");
+//  else ROS_ERROR("No edges...");
   return graph;
 }
 
@@ -166,8 +166,8 @@ descartes_planner::LadderGraph descartes_planner::sampleConstrainedPaths(const d
   segment.retract_end_pt_num = 0;
 
   // Compute the number of angle steps
-  static const auto min_angle = -M_PI_2;
-  static const auto max_angle = M_PI_2;
+  static const auto min_angle = -M_PI;
+  static const auto max_angle = M_PI;
   const auto n_angle_disc = std::lround( (max_angle - min_angle) / segment.z_axis_disc);
   const auto angle_step = (max_angle - min_angle) / n_angle_disc;
 
@@ -185,21 +185,33 @@ descartes_planner::LadderGraph descartes_planner::sampleConstrainedPaths(const d
 
   ROS_INFO_STREAM("Point has " << segment.orientations.size() << " orientations");
   // We will build up our graph one configuration at a time: a configuration is a single orientation and z angle disc
-  for (const auto& orientation : segment.orientations)
+  std::vector<LadderGraph> graphs (segment.orientations.size() * n_angle_disc, LadderGraph(model.getDOF()));
+
+  #pragma omp parallel for
+  for (std::size_t j = 0; j < segment.orientations.size(); ++j) //const auto& orientation : segment.orientations)
   {
-    ROS_INFO_STREAM("Orientation:\n" << orientation);
+    const auto& orientation = segment.orientations[j];
+
+//    ROS_INFO_STREAM("Orientation:\n" << orientation);
 
     // add retract pts according to orientation
-    PositionVector process_pts = points;
+    const PositionVector& process_pts = points;
 
     for (long i = 0; i < n_angle_disc; ++i)
     {
       const auto angle = angle_step * i;
-
-      LadderGraph single_config_graph = sampleSingleConfig(model, process_pts, dt, orientation, angle);
-      concatenate(graph, single_config_graph);
+//      LadderGraph single_config_graph = sampleSingleConfig(model, process_pts, dt, orientation, angle);
+      graphs[j * n_angle_disc + i] =  sampleSingleConfig(model, process_pts, dt, orientation, angle);
     }
   }
+
+  // reduction
+  for (const auto& g : graphs)
+  {
+    concatenate(graph, g);
+  }
+
+//  concatenate(graph, single_config_graph);
 
   return graph;
 }

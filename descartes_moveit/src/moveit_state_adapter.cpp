@@ -244,8 +244,10 @@ bool MoveitStateAdapter::isInCollision(const std::vector<double>& joint_pose) co
   bool in_collision = false;
   if (check_collisions_)
   {
-    robot_state_->setJointGroupPositions(group_name_, joint_pose);
-    in_collision = planning_scene_->isStateColliding(*robot_state_, group_name_);
+    moveit::core::RobotState state (this->robot_model_ptr_);
+    state.setJointGroupPositions(joint_group_, joint_pose);
+    state.update();
+    in_collision = planning_scene_->isStateColliding(state, group_name_);
   }
   return in_collision;
 }
@@ -278,14 +280,14 @@ bool MoveitStateAdapter::getFK(const std::vector<double>& joint_pose, Eigen::Aff
 
 bool MoveitStateAdapter::isValid(const std::vector<double>& joint_pose) const
 {
-  // Logical check on input sizes
-  if (joint_group_->getActiveJointModels().size() != joint_pose.size())
-  {
-    logError("Size of joint pose: %lu doesn't match robot state variable size: %lu",
-             static_cast<unsigned long>(joint_pose.size()),
-             static_cast<unsigned long>(joint_group_->getActiveJointModels().size()));
-    return false;
-  }
+//  // Logical check on input sizes
+//  if (joint_group_->getActiveJointModels().size() != joint_pose.size())
+//  {
+//    logError("Size of joint pose: %lu doesn't match robot state variable size: %lu",
+//             static_cast<unsigned long>(joint_pose.size()),
+//             static_cast<unsigned long>(joint_group_->getActiveJointModels().size()));
+//    return false;
+//  }
 
   // Satisfies joint positional bounds?
   if (!joint_group_->satisfiesPositionBounds(joint_pose.data()))
