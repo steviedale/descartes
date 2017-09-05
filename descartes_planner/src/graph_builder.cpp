@@ -60,7 +60,7 @@ Eigen::Affine3d makePose(const Eigen::Vector3d& position, const Eigen::Matrix3d&
 
 descartes_planner::LadderGraph sampleSingleConfig(const descartes_core::RobotModel& model, const PositionVector& ps,
                                                   const double dt, const Eigen::Matrix3d& orientation,
-                                                  const double z_axis_angle)
+                                                  const double z_axis_angle, bool& has_edges)
 {
   descartes_planner::LadderGraph graph {model.getDOF()};
   graph.resize(ps.size());
@@ -108,15 +108,12 @@ descartes_planner::LadderGraph sampleSingleConfig(const descartes_core::RobotMod
     }
 
     std::vector<descartes_planner::LadderGraph::EdgeList> edges = builder.result();
-    if (!builder.hasEdges())
-    {
-//      ROS_WARN("No edges");
-    }
+
     has_edges_t = has_edges_t && builder.hasEdges();
     graph.assignEdges(i, std::move(edges));
   } // end edge loop
 
-
+  has_edges = has_edges_t;
 //  if (has_edges_t) ROS_ERROR("Lots of edges");
 //  else ROS_ERROR("No edges...");
   return graph;
@@ -186,6 +183,7 @@ descartes_planner::LadderGraph descartes_planner::sampleConstrainedPaths(const d
   ROS_INFO_STREAM("Point has " << segment.orientations.size() << " orientations");
   // We will build up our graph one configuration at a time: a configuration is a single orientation and z angle disc
   std::vector<LadderGraph> graphs (segment.orientations.size() * n_angle_disc, LadderGraph(model.getDOF()));
+  std::vector<bool> graph_edges (segment.orientations.size(), false);
 
   #pragma omp parallel for
   for (std::size_t j = 0; j < segment.orientations.size(); ++j) //const auto& orientation : segment.orientations)
@@ -200,8 +198,10 @@ descartes_planner::LadderGraph descartes_planner::sampleConstrainedPaths(const d
     for (long i = 0; i < n_angle_disc; ++i)
     {
       const auto angle = angle_step * i;
+      bool has_edges = false;
 //      LadderGraph single_config_graph = sampleSingleConfig(model, process_pts, dt, orientation, angle);
-      graphs[j * n_angle_disc + i] =  sampleSingleConfig(model, process_pts, dt, orientation, angle);
+      graphs[j * n_angle_disc + i] =  sampleSingleConfig(model, process_pts, dt, orientation, angle, has_edges);
+      graph_edges[j] = graph_edges[j] || has_edges;
     }
   }
 
@@ -211,6 +211,13 @@ descartes_planner::LadderGraph descartes_planner::sampleConstrainedPaths(const d
     concatenate(graph, g);
   }
 
+  bool any_has_edges = false;
+  for (auto&& b : graph_edges)
+  {
+    if (b) { any_has_edges = true; break; }
+  }
+
+  if (!any_has_edges) ROS_ERROR("No edges");
 //  concatenate(graph, single_config_graph);
 
   return graph;
