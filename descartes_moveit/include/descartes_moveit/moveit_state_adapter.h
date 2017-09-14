@@ -96,6 +96,16 @@ public:
    */
   void setState(const moveit::core::RobotState &state);
 
+  /**
+   * @brief getPlanningScene Returns the underlying moveit planning scene object so it can be
+   * used to add/remove collision objects
+   * @return
+   */
+  planning_scene::PlanningScenePtr getPlanningScene()
+  {
+    return planning_scene_;
+  }
+
 protected:
   /**
    * Gets IK solution (assumes robot state is pre-seeded)
@@ -152,6 +162,17 @@ protected:
    * @brief convenient transformation frame
    */
   descartes_core::Frame world_to_root_;
+
+private:
+  /**
+   * @brief generic ROS node handle for creating service client
+   */
+  ros::NodeHandle nh_;
+
+  /**
+   * @brief service client to get planning scene from moveit move group
+   */
+  ros::ServiceClient get_planning_scene_client_;
 };
 
 }  // descartes_moveit

@@ -23,6 +23,10 @@
 #include "descartes_moveit/seed_search.h"
 
 #include <eigen_conversions/eigen_msg.h>
+#include <moveit/common_planning_interface_objects/common_objects.h>
+#include <moveit_msgs/GetPlanningScene.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit/move_group/capability_names.h>
 #include <random_numbers/random_numbers.h>
 #include <ros/assert.h>
 #include <sstream>
@@ -63,7 +67,9 @@ bool getJointVelocityLimits(const moveit::core::RobotState& state, const std::st
 
 namespace descartes_moveit
 {
-MoveitStateAdapter::MoveitStateAdapter() : world_to_root_(Eigen::Affine3d::Identity())
+MoveitStateAdapter::MoveitStateAdapter()
+  : world_to_root_(Eigen::Affine3d::Identity())
+  , nh_(ros::NodeHandle ())
 {
 }
 
@@ -71,15 +77,17 @@ bool MoveitStateAdapter::initialize(const std::string& robot_description, const 
                                     const std::string& world_frame, const std::string& tcp_frame)
 {
   // Initialize MoveIt state objects
-  robot_model_loader_.reset(new robot_model_loader::RobotModelLoader(robot_description));
+  robot_model_ptr_ = moveit::planning_interface::getSharedRobotModel(robot_description);
+//  robot_model_loader_.reset(new robot_model_loader::RobotModelLoader(robot_description));
 
-  return initialize(robot_model_loader_->getModel(), group_name, world_frame, tcp_frame);
+//  return initialize(robot_model_loader_->getModel(), group_name, world_frame, tcp_frame);
+  return initialize(robot_model_ptr_, group_name, world_frame, tcp_frame);
 }
 
 bool MoveitStateAdapter::initialize(robot_model::RobotModelConstPtr robot_model, const std::string &group_name,
                                     const std::string &world_frame, const std::string &tcp_frame)
 {
-  robot_model_ptr_ = robot_model;
+//  robot_model_ptr_ = robot_model;
   robot_state_.reset(new moveit::core::RobotState(robot_model_ptr_));
   robot_state_->setToDefaultValues();
   planning_scene_.reset(new planning_scene::PlanningScene(robot_model));
@@ -130,6 +138,8 @@ bool MoveitStateAdapter::initialize(robot_model::RobotModelConstPtr robot_model,
     Eigen::Affine3d root_to_world = robot_state_->getFrameTransform(world_frame_);
     world_to_root_ = descartes_core::Frame(root_to_world.inverse());
   }
+
+  get_planning_scene_client_ = nh_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
 
   return true;
 }
@@ -240,6 +250,7 @@ bool MoveitStateAdapter::isInCollision(const std::vector<double>& joint_pose) co
   if (check_collisions_)
   {
     moveit::core::RobotState state (this->robot_model_ptr_);
+    state.setToDefaultValues();
     state.setJointGroupPositions(this->joint_group_, joint_pose);
     in_collision = planning_scene_->isStateColliding(state, group_name_); //, group_name_);
   }
