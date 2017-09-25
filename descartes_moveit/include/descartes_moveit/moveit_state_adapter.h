@@ -106,6 +106,11 @@ public:
     return planning_scene_;
   }
 
+  planning_scene::PlanningScenePtr& getPlanningScenePtr() override
+  {
+    return planning_scene_;
+  }
+
 protected:
   /**
    * Gets IK solution (assumes robot state is pre-seeded)
