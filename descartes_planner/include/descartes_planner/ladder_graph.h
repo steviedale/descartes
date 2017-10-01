@@ -224,7 +224,7 @@ public:
   }
 
 private:
-  const size_type dof_;
+  size_type dof_;
   std::vector<Rung> rungs_;
 };
 } // descartes_planner

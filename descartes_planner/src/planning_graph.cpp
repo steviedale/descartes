@@ -203,11 +203,11 @@ bool PlanningGraph::calculateJointSolutions(const TrajectoryPtPtr* points, const
     poses[i] = std::move(joint_poses);
   }
 
-  for (const auto& sols : poses)
-  {
-    if (sols.empty())
-      return false;
-  }
+//  for (const auto& sols : poses)
+//  {
+//    if (sols.empty())
+//      return false;
+//  }
 
   return true;
 }

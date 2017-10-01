@@ -33,11 +33,12 @@ public:
 
   explicit DAGSearch(const LadderGraph& graph);
 
-  double run(const std::vector<double>& seed_weights = {});
+  double run(const std::vector<double>& seed_weights = {}, bool init_first_row = true);
 
   std::vector<predecessor_t> shortestPath() const;
 
-private:
+  std::vector<predecessor_t> shortestPath(predecessor_t final_index) const;
+
   const LadderGraph& graph_;
 
   struct SolutionRung
@@ -47,6 +48,11 @@ private:
   };
 
   inline double& distance(size_type rung, size_type index) noexcept
+  {
+    return solution_[rung].distance[index];
+  }
+
+  inline const double& distance(size_type rung, size_type index) const noexcept
   {
     return solution_[rung].distance[index];
   }

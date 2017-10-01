@@ -17,20 +17,22 @@ DAGSearch::DAGSearch(const LadderGraph &graph)
   }
 }
 
-double DAGSearch::run(const std::vector<double>& seed_weights)
+double DAGSearch::run(const std::vector<double>& seed_weights, bool init_first_row)
 {
-
-  if (!seed_weights.empty())
+  if (init_first_row)
   {
-    if (seed_weights.size() != solution_.front().distance.size())
-      throw std::invalid_argument("Seed weights must match the size of initial row of joint solutions");
+    if (!seed_weights.empty())
+    {
+      if (seed_weights.size() != solution_.front().distance.size())
+        throw std::invalid_argument("Seed weights must match the size of initial row of joint solutions");
 
-    solution_.front().distance = seed_weights;
-  }
-  else
-  {
-    // Cost to the first rung should be set to zero
-    std::fill(solution_.front().distance.begin(), solution_.front().distance.end(), 0.0);
+      solution_.front().distance = seed_weights;
+    }
+    else
+    {
+      // Cost to the first rung should be set to zero
+      std::fill(solution_.front().distance.begin(), solution_.front().distance.end(), 0.0);
+    }
   }
 
   // Other rows initialize to zero
@@ -71,10 +73,19 @@ std::vector<DAGSearch::predecessor_t> DAGSearch::shortestPath() const
   auto min_idx = std::distance(solution_.back().distance.begin(), min_it);
   assert(min_idx >= 0);
 
+  return shortestPath(min_idx);
+}
+
+std::vector<DAGSearch::predecessor_t> DAGSearch::shortestPath(DAGSearch::predecessor_t final_index) const
+{
+//  auto min_it = std::min_element(solution_.back().distance.begin(), solution_.back().distance.end());
+//  auto min_idx = std::distance(solution_.back().distance.begin(), min_it);
+//  assert(min_idx >= 0);
+
   std::vector<predecessor_t> path (solution_.size());
 
   size_type current_rung = path.size() - 1;
-  size_type current_index = min_idx;
+  size_type current_index = final_index;
 
   for (unsigned i = 0; i < path.size(); ++i)
   {
