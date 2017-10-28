@@ -19,6 +19,12 @@ DAGSearch::DAGSearch(const LadderGraph &graph)
 
 double DAGSearch::run(const std::vector<double>& seed_weights, bool init_first_row)
 {
+  if (solution_.empty())
+  {
+    ROS_WARN("Empty solution");
+    return std::numeric_limits<double>::max();
+  }
+
   if (init_first_row)
   {
     if (!seed_weights.empty())
@@ -64,7 +70,16 @@ double DAGSearch::run(const std::vector<double>& seed_weights, bool init_first_r
     } // vertex for loop
   } // rung for loop
 
-  return *std::min_element(solution_.back().distance.begin(), solution_.back().distance.end());
+  auto it = std::min_element(solution_.back().distance.begin(), solution_.back().distance.end());
+  if (it != solution_.back().distance.end())
+  {
+    return *it;
+  }
+  else
+  {
+    ROS_WARN("NO SOLS IN LAST COL");
+    return std::numeric_limits<double>::max();
+  }
 }
 
 std::vector<DAGSearch::predecessor_t> DAGSearch::shortestPath() const

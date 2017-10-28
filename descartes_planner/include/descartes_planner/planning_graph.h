@@ -67,6 +67,7 @@ public:
   bool getShortestPath(double &cost, std::list<descartes_trajectory::JointTrajectoryPt> &path);
 
   const descartes_planner::LadderGraph& graph() const noexcept { return graph_; }
+  descartes_planner::LadderGraph& graph() noexcept { return graph_; }
 
   descartes_core::RobotModelConstPtr getRobotModel() const { return robot_model_; }
 
