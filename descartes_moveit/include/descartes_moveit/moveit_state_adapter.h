@@ -127,6 +127,8 @@ protected:
    */
   bool isInCollision(const std::vector<double> &joint_pose) const;
 
+  bool isInLimits(const std::vector<double>& joint_pose) const;
+
   /**
    * Maximum joint velocities (rad/s) for each joint in the chain. Used for checking in
    * `isValidMove()`

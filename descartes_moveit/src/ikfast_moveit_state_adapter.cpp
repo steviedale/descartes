@@ -89,22 +89,39 @@ bool descartes_moveit::IkFastMoveitStateAdapter::getAllIK(const Eigen::Affine3d&
     return false;
   }
 
-  const auto last_index = getDOF() - 1;
+  const auto dof = getDOF();
+  const auto index6 = dof - 1;
+  const auto index4 = dof - 3;
+
+  auto search_extras = [this, &joint_poses, index6, index4](std::vector<double>& sol)
+  {
+    bool collision_checked = false;
+
+    const double joint6 = sol[index6];
+    const double joint4 = sol[index4];
+
+    for (int i = -1; i <= 1; ++i)
+    {
+      sol[index6] = joint6 + i * 2.0 * M_PI;
+      for (int j = -1; j <= 1; ++j)
+      {
+        sol[index4] = joint4 + j * 2.0 * M_PI;
+        if (isInLimits(sol))
+        {
+          if (!collision_checked)
+          {
+            if (isInCollision(sol)) return;
+            else collision_checked = true;
+          }
+          joint_poses.push_back(sol);
+        } // in limits
+      }
+    }
+  };
 
   for (auto& sol : joint_results)
   {
-    if (isValid(sol))
-      joint_poses.push_back(sol);
-
-    // Search last joint +2PI
-    sol[last_index] += 2.0 * M_PI;
-    if (isValid(sol))
-      joint_poses.push_back(sol);
-
-    // Search last joint -2PI
-    sol[last_index] -= 2.0 * 2.0 * M_PI;
-    if (isValid(sol))
-      joint_poses.push_back(sol);
+    search_extras(sol);
   }
 
   return joint_poses.size() > 0;
