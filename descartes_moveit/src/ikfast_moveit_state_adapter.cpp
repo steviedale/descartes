@@ -106,7 +106,12 @@ bool descartes_moveit::IkFastMoveitStateAdapter::getAllIK(const Eigen::Affine3d&
       for (int j = -1; j <= 1; ++j)
       {
         sol[index4] = joint4 + j * 2.0 * M_PI;
-        if (isInLimits(sol))
+
+        // Compute relative distance between 4 & 6
+        const auto windup = std::abs(sol[index6] - sol[index4]);
+        const static auto windup_limit = 3.0 * M_PI;
+
+        if (isInLimits(sol) && windup < windup_limit)
         {
           if (!collision_checked)
           {
