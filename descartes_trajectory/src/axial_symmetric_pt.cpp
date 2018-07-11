@@ -4,18 +4,25 @@ using descartes_trajectory::TolerancedFrame;
 using descartes_trajectory::AxialSymmetricPt;
 using namespace descartes_core::utils;
 
+static TolerancedFrame makeUnconstrainedRotation(const Eigen::Affine3d& pose, AxialSymmetricPt::FreeAxis axis,
+                                                 double x, double y, double z, double rx, double ry, double rz)
+{
+  using namespace descartes_trajectory;
+
+  PositionTolerance pos_tol = ToleranceBase::zeroTolerance<PositionTolerance>(x, y, z);
+  OrientationTolerance orient_tol = ToleranceBase::createSymmetric<OrientationTolerance>(rx, ry, rz,
+        ((axis == AxialSymmetricPt::X_AXIS) ? 2 * M_PI : 0.0),
+        ((axis == AxialSymmetricPt::Y_AXIS) ? 2 * M_PI : 0.0),
+        ((axis == AxialSymmetricPt::Z_AXIS) ? 2 * M_PI : 0.0));
+  return TolerancedFrame(pose, pos_tol, orient_tol);
+}
+
 static TolerancedFrame makeUnconstrainedRotation(double x, double y, double z, double rx, double ry, double rz,
                                                  AxialSymmetricPt::FreeAxis axis)
 {
   using namespace descartes_trajectory;
-
   Eigen::Affine3d pose = toFrame(x, y, z, rx, ry, rz, EulerConventions::XYZ);
-  PositionTolerance pos_tol = ToleranceBase::zeroTolerance<PositionTolerance>(x, y, z);
-  OrientationTolerance orient_tol = ToleranceBase::createSymmetric<OrientationTolerance>(
-      ((axis == AxialSymmetricPt::X_AXIS) ? 0.0 : rx), ((axis == AxialSymmetricPt::Y_AXIS) ? 0.0 : ry),
-      ((axis == AxialSymmetricPt::Z_AXIS) ? 0.0 : rz), ((axis == AxialSymmetricPt::X_AXIS) ? 2 * M_PI : 0.0),
-      ((axis == AxialSymmetricPt::Y_AXIS) ? 2 * M_PI : 0.0), ((axis == AxialSymmetricPt::Z_AXIS) ? 2 * M_PI : 0.0));
-  return TolerancedFrame(pose, pos_tol, orient_tol);
+  return makeUnconstrainedRotation(pose, axis, x, y, z, rx, ry, rz);
 }
 
 static TolerancedFrame makeUnconstrainedRotation(const Eigen::Affine3d& pose, AxialSymmetricPt::FreeAxis axis)
@@ -29,13 +36,7 @@ static TolerancedFrame makeUnconstrainedRotation(const Eigen::Affine3d& pose, Ax
   double x = pose.translation()(0);
   double y = pose.translation()(1);
   double z = pose.translation()(2);
-
-  PositionTolerance pos_tol = ToleranceBase::zeroTolerance<PositionTolerance>(x, y, z);
-  OrientationTolerance orient_tol = ToleranceBase::createSymmetric<OrientationTolerance>(
-      ((axis == AxialSymmetricPt::X_AXIS) ? 0.0 : rx), ((axis == AxialSymmetricPt::Y_AXIS) ? 0.0 : ry),
-      ((axis == AxialSymmetricPt::Z_AXIS) ? 0.0 : rz), ((axis == AxialSymmetricPt::X_AXIS) ? 2 * M_PI : 0.0),
-      ((axis == AxialSymmetricPt::Y_AXIS) ? 2 * M_PI : 0.0), ((axis == AxialSymmetricPt::Z_AXIS) ? 2 * M_PI : 0.0));
-  return TolerancedFrame(pose, pos_tol, orient_tol);
+  return makeUnconstrainedRotation(pose, axis, x, y, z, rx, ry, rz);
 }
 
 namespace descartes_trajectory
