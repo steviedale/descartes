@@ -25,7 +25,7 @@
 #include <console_bridge/console.h>
 #include "descartes_trajectory/joint_trajectory_pt.h"
 
-#define NOT_IMPLEMENTED_ERR(ret) logError("%s not implemented", __PRETTY_FUNCTION__); return ret;
+#define NOT_IMPLEMENTED_ERR(ret) CONSOLE_BRIDGE_logError("%s not implemented", __PRETTY_FUNCTION__); return ret;
 
 // Utility function to unpack joint bounds from a TolerancedJointValue struct
 // Note that this does not clear the existing vectors.
@@ -143,7 +143,7 @@ bool JointTrajectoryPt::setDiscretization(const std::vector<double> &discretizat
 {
   if (discretization.size() != 1 || discretization.size() != nominal_.size())
   {
-    logError("discretization must be size 1 or same size as joint count.");
+    CONSOLE_BRIDGE_logError("discretization must be size 1 or same size as joint count.");
     return false;
   }
 
@@ -158,7 +158,7 @@ bool JointTrajectoryPt::setDiscretization(const std::vector<double> &discretizat
   {
     if (discretization[ii] < 0. || discretization[ii] > (upper_[ii] - lower_[ii]))
     {
-      logError("discretization value out of range.");
+      CONSOLE_BRIDGE_logError("discretization value out of range.");
       return false;
     }
   }

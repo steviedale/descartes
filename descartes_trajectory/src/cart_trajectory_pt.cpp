@@ -31,7 +31,7 @@
 #include "descartes_trajectory/cart_trajectory_pt.h"
 #include <descartes_core/utils.h>
 
-#define NOT_IMPLEMENTED_ERR(ret) logError("%s not implemented", __PRETTY_FUNCTION__); return ret;
+#define NOT_IMPLEMENTED_ERR(ret) CONSOLE_BRIDGE_logError("%s not implemented", __PRETTY_FUNCTION__); return ret;
 
 const double EQUALITY_TOLERANCE = 0.0001f;
 

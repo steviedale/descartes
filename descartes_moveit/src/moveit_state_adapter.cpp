@@ -83,7 +83,7 @@ MoveitStateAdapter::MoveitStateAdapter(const moveit::core::RobotState & robot_st
     // Find the velocity limits
     if (!getJointVelocityLimits(*robot_state_, group_name, velocity_limits_))
     {
-      logWarn("Could not determine velocity limits of RobotModel from MoveIt");
+      CONSOLE_BRIDGE_logWarn("Could not determine velocity limits of RobotModel from MoveIt");
     }
 
     joint_model_group_ptr->printGroupInfo();
@@ -91,13 +91,13 @@ MoveitStateAdapter::MoveitStateAdapter(const moveit::core::RobotState & robot_st
     const std::vector<std::string>& link_names = joint_model_group_ptr->getLinkModelNames();
     if (tool_frame_ != link_names.back())
     {
-      logWarn("Tool frame '%s' does not match group tool frame '%s', functionality will be implemented in the future",
+      CONSOLE_BRIDGE_logWarn("Tool frame '%s' does not match group tool frame '%s', functionality will be implemented in the future",
                tool_frame_.c_str(), link_names.back().c_str());
     }
 
     if (world_frame_ != robot_state_->getRobotModel()->getModelFrame())
     {
-      logWarn("World frame '%s' does not match model root frame '%s', all poses will be transformed to world frame '%s'",
+      CONSOLE_BRIDGE_logWarn("World frame '%s' does not match model root frame '%s', all poses will be transformed to world frame '%s'",
                world_frame_.c_str(), link_names.front().c_str(),world_frame_.c_str());
 
       Eigen::Affine3d root_to_world = robot_state_->getFrameTransform(world_frame_);
@@ -107,10 +107,10 @@ MoveitStateAdapter::MoveitStateAdapter(const moveit::core::RobotState & robot_st
   }
   else
   {
-    logError("Joint group: %s does not exist in robot model", group_name_.c_str());
+    CONSOLE_BRIDGE_logError("Joint group: %s does not exist in robot model", group_name_.c_str());
     std::stringstream msg;
     msg << "Possible group names: " << robot_state_->getRobotModel()->getJointModelGroupNames();
-    logError(msg.str().c_str());
+    CONSOLE_BRIDGE_logError(msg.str().c_str());
   }
   return;
 }
@@ -136,7 +136,7 @@ bool MoveitStateAdapter::initialize(const std::string& robot_description, const 
   // Find the velocity limits
   if (!getJointVelocityLimits(*robot_state_, group_name, velocity_limits_))
   {
-    logWarn("Could not determine velocity limits of RobotModel from MoveIt");
+    CONSOLE_BRIDGE_logWarn("Could not determine velocity limits of RobotModel from MoveIt");
   }
 
   const moveit::core::JointModelGroup* joint_model_group_ptr = robot_state_->getJointModelGroup(group_name);
@@ -147,13 +147,13 @@ bool MoveitStateAdapter::initialize(const std::string& robot_description, const 
     const std::vector<std::string>& link_names = joint_model_group_ptr->getLinkModelNames();
     if (tool_frame_ != link_names.back())
     {
-      logWarn("Tool frame '%s' does not match group tool frame '%s', functionality will be implemented in the future",
+      CONSOLE_BRIDGE_logWarn("Tool frame '%s' does not match group tool frame '%s', functionality will be implemented in the future",
                tool_frame_.c_str(), link_names.back().c_str());
     }
 
     if (world_frame_ != robot_state_->getRobotModel()->getModelFrame())
     {
-      logWarn("World frame '%s' does not match model root frame '%s', all poses will be transformed to world frame '%s'",
+      CONSOLE_BRIDGE_logWarn("World frame '%s' does not match model root frame '%s', all poses will be transformed to world frame '%s'",
                world_frame_.c_str(), robot_state_->getRobotModel()->getModelFrame().c_str(),world_frame_.c_str());
 
       Eigen::Affine3d root_to_world = robot_state_->getFrameTransform(world_frame_);
@@ -163,10 +163,10 @@ bool MoveitStateAdapter::initialize(const std::string& robot_description, const 
   }
   else
   {
-    logError("Joint group: %s does not exist in robot model", group_name_.c_str());
+    CONSOLE_BRIDGE_logError("Joint group: %s does not exist in robot model", group_name_.c_str());
     std::stringstream msg;
     msg << "Possible group names: " << robot_state_->getRobotModel()->getJointModelGroupNames();
-    logError(msg.str().c_str());
+    CONSOLE_BRIDGE_logError(msg.str().c_str());
   }
   return true;
 }
@@ -215,7 +215,7 @@ bool MoveitStateAdapter::getAllIK(const Eigen::Affine3d &pose, std::vector<std::
   //to be further apart than this.
   double epsilon = 4 * robot_state_->getRobotModel()->getJointModelGroup(group_name_)->getSolverInstance()->
       getSearchDiscretization();
-  logDebug("Utilizing an min. difference of %f between IK solutions", epsilon);
+  CONSOLE_BRIDGE_logDebug("Utilizing an min. difference of %f between IK solutions", epsilon);
   joint_poses.clear();
   for (size_t sample_iter = 0; sample_iter < seed_states_.size(); ++sample_iter)
   {
@@ -227,14 +227,14 @@ bool MoveitStateAdapter::getAllIK(const Eigen::Affine3d &pose, std::vector<std::
       {
         std::stringstream msg;
         msg << "Found *first* solution on " << sample_iter << " iteration, joint: " << joint_pose;
-        logDebug(msg.str().c_str());
+        CONSOLE_BRIDGE_logDebug(msg.str().c_str());
         joint_poses.push_back(joint_pose);
       }
       else
       {
         std::stringstream msg;
         msg << "Found *potential* solution on " << sample_iter << " iteration, joint: " << joint_pose;
-        logDebug(msg.str().c_str());
+        CONSOLE_BRIDGE_logDebug(msg.str().c_str());
 
         std::vector<std::vector<double> >::iterator joint_pose_it;
         bool match_found = false;
@@ -242,7 +242,7 @@ bool MoveitStateAdapter::getAllIK(const Eigen::Affine3d &pose, std::vector<std::
         {
           if( descartes_core::utils::equal(joint_pose, (*joint_pose_it), epsilon) )
           {
-            logDebug("Found matching, potential solution is not new");
+            CONSOLE_BRIDGE_logDebug("Found matching, potential solution is not new");
             match_found = true;
             break;
           }
@@ -251,21 +251,21 @@ bool MoveitStateAdapter::getAllIK(const Eigen::Affine3d &pose, std::vector<std::
         {
           std::stringstream msg;
           msg << "Found *new* solution on " << sample_iter << " iteration, joint: " << joint_pose;
-          logDebug(msg.str().c_str());
+          CONSOLE_BRIDGE_logDebug(msg.str().c_str());
           joint_poses.push_back(joint_pose);
         }
       }
     }
   }
-  logDebug("Found %d joint solutions out of %d iterations", joint_poses.size(), seed_states_.size());
+  CONSOLE_BRIDGE_logDebug("Found %d joint solutions out of %d iterations", joint_poses.size(), seed_states_.size());
   if (joint_poses.empty())
   {
-    logError("Found 0 joint solutions out of %d iterations", seed_states_.size());
+    CONSOLE_BRIDGE_logError("Found 0 joint solutions out of %d iterations", seed_states_.size());
     return false;
   }
   else
   {
-    logInform("Found %d joint solutions out of %d iterations", joint_poses.size(), seed_states_.size());
+    CONSOLE_BRIDGE_logInform("Found %d joint solutions out of %d iterations", joint_poses.size(), seed_states_.size());
     return true;
   }
 }
@@ -295,19 +295,19 @@ bool MoveitStateAdapter::getFK(const std::vector<double> &joint_pose, Eigen::Aff
     }
     else
     {
-      logError("Robot state does not recognize tool frame: %s", tool_frame_.c_str());
+      CONSOLE_BRIDGE_logError("Robot state does not recognize tool frame: %s", tool_frame_.c_str());
       rtn = false;
     }
   }
   else
   {
-    logError("Invalid joint pose passed to get forward kinematics");
+    CONSOLE_BRIDGE_logError("Invalid joint pose passed to get forward kinematics");
     rtn = false;
   }
   std::stringstream msg;
   msg << "Returning the pose " << std::endl << pose.matrix() << std::endl
       << "For joint pose: " << joint_pose;
-  logDebug(msg.str().c_str());
+  CONSOLE_BRIDGE_logDebug(msg.str().c_str());
   return rtn;
 }
 
@@ -331,7 +331,7 @@ bool MoveitStateAdapter::isValid(const std::vector<double> &joint_pose) const
     {
       std::stringstream msg;
       msg << "Joint pose: " << joint_pose << ", outside joint boundaries";
-      logDebug(msg.str().c_str());
+      CONSOLE_BRIDGE_logDebug(msg.str().c_str());
     }
 
     if(isInCollision(joint_pose))
@@ -343,7 +343,7 @@ bool MoveitStateAdapter::isValid(const std::vector<double> &joint_pose) const
   }
   else
   {
-    logError("Size of joint pose: %d doesn't match robot state variable size: %d",
+    CONSOLE_BRIDGE_logError("Size of joint pose: %d doesn't match robot state variable size: %d",
              joint_pose.size(),
              robot_state_->getJointModelGroup(group_name_)->getActiveJointModels().size());
     rtn = false;
