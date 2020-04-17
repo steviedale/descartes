@@ -82,7 +82,7 @@ static Eigen::Affine3d toFrame(double tx, double ty, double tz, double rx, doubl
       break;
 
     default:
-      logError("Invalid euler convention entry %i", convention);
+      CONSOLE_BRIDGE_logError("Invalid euler convention entry %i", convention);
       break;
   }
 
