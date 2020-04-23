@@ -19,7 +19,7 @@
 #ifndef ROBOT_KINEMATICS_H_
 #define ROBOT_KINEMATICS_H_
 
-// TODO: The include below picks up Eigen::Affine3d, but there is probably a better way
+// TODO: The include below picks up Eigen::Isometry3d, but there is probably a better way
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include "descartes_core/utils.h"
 #include <moveit/planning_scene/planning_scene.h>
@@ -46,31 +46,31 @@ public:
 
   /**
    * @brief Returns the joint pose closest to the seed pose for a desired affine pose
-   * @param pose Affine pose of TOOL in WOBJ frame
+   * @param pose Isometry pose of TOOL in WOBJ frame
    * @param seed_state Joint position seed (returned solution is "close" to the seed).
    * @param joint_pose Solution (if function successful).
    * @return True if successful
    */
-  virtual bool getIK(const Eigen::Affine3d &pose, const std::vector<double> &seed_state,
+  virtual bool getIK(const Eigen::Isometry3d &pose, const std::vector<double> &seed_state,
                      std::vector<double> &joint_pose) const = 0;
 
   /**
    * @brief Returns "all" the joint poses("distributed" in joint space) for a desired affine pose.
    * "All" is determined by each implementation (In the worst case, this means at least getIK).
    * "Distributed" is determined by each implementation.
-   * @param pose Affine pose of TOOL in WOBJ frame
+   * @param pose Isometry pose of TOOL in WOBJ frame
    * @param joint_poses Solution (if function successful).
    * @return True if successful
    */
-  virtual bool getAllIK(const Eigen::Affine3d &pose, std::vector<std::vector<double> > &joint_poses) const = 0;
+  virtual bool getAllIK(const Eigen::Isometry3d &pose, std::vector<std::vector<double> > &joint_poses) const = 0;
 
   /**
    * @brief Returns the affine pose
    * @param joint_pose Solution (if function successful).
-   * @param pose Affine pose of TOOL in WOBJ frame
+   * @param pose Isometry pose of TOOL in WOBJ frame
    * @return True if successful
    */
-  virtual bool getFK(const std::vector<double> &joint_pose, Eigen::Affine3d &pose) const = 0;
+  virtual bool getFK(const std::vector<double> &joint_pose, Eigen::Isometry3d &pose) const = 0;
 
   /**
    * @brief Returns number of DOFs
@@ -87,10 +87,10 @@ public:
 
   /**
    * @brief Performs all necessary checks to determine affine pose is valid
-   * @param pose Affine pose of TOOL in WOBJ frame
+   * @param pose Isometry pose of TOOL in WOBJ frame
    * @return True if valid
    */
-  virtual bool isValid(const Eigen::Affine3d &pose) const = 0;
+  virtual bool isValid(const Eigen::Isometry3d &pose) const = 0;
 
   /**
    * @brief Returns the joint velocity limits for each joint in the robot kinematic model
