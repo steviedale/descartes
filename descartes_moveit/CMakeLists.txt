@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   descartes_trajectory
   moveit_ros_planning
   pluginlib
+  eigen_conversions
 )
 
 find_package(rosconsole_bridge REQUIRED)
@@ -33,6 +34,7 @@ catkin_package(
     cmake_modules
     descartes_core
     descartes_trajectory
+    eigen_conversions
   DEPENDS
     rosconsole_bridge
     Boost

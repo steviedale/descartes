@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   descartes_core
   moveit_core
   roscpp
+  eigen_conversions
 )
 
 find_package(Boost REQUIRED)
@@ -31,6 +32,7 @@ catkin_package(
     roscpp
     moveit_core
     descartes_core
+    eigen_conversions
   DEPENDS
     Boost
     EIGEN3
